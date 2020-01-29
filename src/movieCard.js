@@ -1,8 +1,12 @@
 const movieContainerDiv = document.querySelector(".movie-container")
+
+// ALL MY MOVIE MOVIE SHOW
 const viewMovieCard = document.querySelector(".view-movie-card")
 const aMovieContainer = document.querySelector(".amovie-container")
 const allMyMoviesDiv = document.querySelector(".all-my-movies")
 const myMovieContainer = document.querySelector(".my-movie-container")
+const movieShowTime = document.querySelector(".movies-show-time")
+const movieButtonDiv = document.querySelector(".show-room-btn-div")
 
 class MovieCard {
     constructor(movieObj){
@@ -33,7 +37,6 @@ class MovieCard {
                 let imbed = evt.target.dataset.id
 
                 getMovieInfo(imbed)
-        //    console.log(evt.target.dataset.id)
         })
 
         return MovieCardDiv
@@ -55,7 +58,6 @@ function getMovieInfo(imbed){
     })
 }
 
-// addSaveToMovieCollectionButton()
 function aMovie(movie){
     let aMovieContainer = document.querySelector(".amovie-container")
         aMovieContainer.innerHTML=""
@@ -116,22 +118,15 @@ function aMovie(movie){
             })
         })
             .then(r => r.json())
-            .then(resjson =>{
-                
+            .then(resjson =>{ 
                 aMovieContainer.innerHTML = ""
-                console.log(resjson)
-                // myMovieShowPage(resjson)
-                // allMyMoviesHtml.append(resjson)
                 myMovieContainer.append(myMovieShowPage(resjson))
-                
             })
     })
-
-
-
 }
 
 function myMovieShowPage(movie){
+    allMyMoviesDiv.innerHTML = ""
     const myMovieDiv = document.createElement("DIV")
         myMovieDiv.className = "my-movie"
     const myMovieTitileh1 = document.createElement("H1")
@@ -158,9 +153,177 @@ function myMovieShowPage(movie){
         myMovieProduction.innerText = movie.production
     const myMovieType = document.createElement("DIV")
         myMovieType.innerText = movie.a_type 
-        myMovieDiv.append(myMovieTitileh1, myMovieImg, myMoviePlot, myMovieRated, myMovieDirector, myMovieActors, myMovieReleased, myMovieRuntime, myMovieGenre, myMovieProduction, myMovieType)
+    const myMovieDeleteButton = document.createElement("BUTTON")
+        myMovieDeleteButton.type = "submit"
+        myMovieDeleteButton.className = "my-movie-delete-btn"
+        myMovieDeleteButton.innerText = "Remove from List"
+
+        const showTimeButton = document.createElement("BUTTON")
+    showTimeButton.className = "show-times-btn"
+    showTimeButton.innerText = "Add to a Show room"
+
+
+
+    
+
+        myMovieDiv.append(myMovieTitileh1, myMovieImg, myMoviePlot, myMovieRated, 
+            myMovieDirector, myMovieActors, myMovieReleased, myMovieRuntime, myMovieGenre,
+             myMovieProduction, myMovieType, myMovieDeleteButton , showTimeButton)
     myMovieContainer.innerHTML = ""
     myMovieContainer.appendChild(myMovieDiv)
     // return myMovieDiv
     
+
+    showTimeButton.addEventListener( "click", (evt) => {
+        showTimeButton.remove()
+       
+       
+        const movieSearchForm = document.createElement("FORM")
+        movieSearchForm.className = "movie-search-form"
+        movieSearchForm.dataset.id = movie.id
+
+        const daySelect = document.createElement("SELECT")
+        daySelect.className = "weekdays"
+        const monday = document.createElement("OPTION")
+        monday.value = "Monday"
+        monday.innerText = "Monday"
+        const tuesday = document.createElement("OPTION")
+        tuesday.value = "tuesday"
+        tuesday.innerText = "Tuesday"
+        const wednesday = document.createElement("OPTION")
+        wednesday.value = "wednesday"
+        wednesday.innerText = "Wednesday"
+        const thursday = document.createElement("OPTION")
+        thursday.value = "thursday"
+        thursday.innerText = "Thursday"
+        const friday = document.createElement("OPTION")
+        friday.value = "friday"
+        friday.innerText = "Friday"
+        const saturday = document.createElement("OPTION")
+        saturday.value = "saturday"
+        saturday.innerText = "Saturday"
+        const sunday = document.createElement("OPTION")
+        sunday.value = "sunday"
+        sunday.innerText = "Sunday"
+
+        daySelect.append(monday, tuesday,wednesday , thursday, friday)
+        const roomSelect1 = document.createElement("SELECT")
+        roomSelect1.className = "select1"
+        
+        
+        const option1 = document.createElement("OPTION")
+        option1.value = "2:00 pm"
+        option1.innerText = "2:00"
+        const option2 = document.createElement("OPTION")
+        option2.value = "4:00 pm"
+        option2.innerText = "4:00 pm"
+        const option3 = document.createElement("OPTION")
+        option3.value = "6:00 pm"
+        option3.innerText = "6:00 pm"
+        const option4 = document.createElement("OPTION")
+        option4.value = "8:00 pm"
+        option4.innerText = "8:00 pm"
+        const option5 = document.createElement("OPTION")
+        option5.value = "10:00 pm"
+        option5.innerText = "10:00 pm"
+        roomSelect1.append( option1, option2, option3, option4, option5)
+        
+        // myMovieDiv.appendChild(select)
+        const roomSelect2 = document.createElement("SELECT")
+        roomSelect2.className = "select2"
+
+        fetch("http://localhost:3000/show_rooms")
+            .then(r => r.json())
+            .then((roomsArray) => {
+                console.log(roomsArray)
+                roomsArray.data.forEach((room) => {
+                    const option = document.createElement("OPTION")
+                    option.value = room.id
+                    option.innerText = `Room Number: ${room.id}`
+                   
+                    roomSelect2.append(option)
+                })
+            })
+            //mUST POST HERE 
+            // myMovieDiv.appendChild(roomSelect)
+            
+            const submitButton = document.createElement("Button")
+            submitButton.type ="Submit"
+            submitButton.innerText = "Set Show Time"
+
+            movieSearchForm.append(daySelect , roomSelect1, roomSelect2, submitButton)
+            myMovieDiv.appendChild(movieSearchForm)
+
+            //add EventListener to moive Search Form to create a new Show time //POST
+
+            movieSearchForm.addEventListener("submit", (evt) => {
+                evt.preventDefault()
+                console.log(evt.target)
+                let dayValue = evt.target.querySelector(".weekdays").value
+                let timeValue = evt.target.querySelector(".select1").value
+                let roomValue = evt.target.querySelector(".select2").value
+                
+                fetch(`http://localhost:3000/show_times`, {
+                    method: "POST",
+                    headers: {
+                        "content-type" :"application/json",
+                        "accept" : "application/json"
+                    }, 
+                    body: JSON.stringify({
+                        movie_id: movie.id,
+                        day: dayValue,
+                        show_time: timeValue,
+                        show_room_id: roomValue
+                    })
+                })
+                .then(r => r.json())
+                .then((savedMovieTime) => {
+
+                    console.log()
+                    myMovieDiv.innerHTML = ""
+                    movieShowTime(savedMovieTime, movie)
+                })
+            })
+    })
+    //DELETE BUTTON
+    myMovieDeleteButton.addEventListener("click" ,(evt) => {
+        console.log(evt.target)
+
+        fetch(`http://localhost:3000/movies/${movie.id}`, {
+            method: "DELETE"
+        })
+        .then((resjson) => {
+            myMovieContainer.innerHTML = "" //REMOVES the movie show from 
+            debugger
+            const movieDiv = allMyMoviesDiv.querySelector(`[data-id='${movie.id}']`)
+            
+            // movieDiv.remove()
+            
+            // allMyMoviesDiv
+        }
+        )
+        allMyMovies()
+    })
+    
+    function movieShowTime(a_time, movie){
+        
+        const movieShowTime = document.querySelector(".movies-show-time")
+    //    if(time.movie_id === movie.id)
+    //    let movieTimeImage = movie.poster    
+       
+       
+        const showTimeDiv = document.createElement("DIV")
+        const showTimeMovieImg = document.createElement("IMG")
+        showTimeMovieImg.src = movie.poster
+        
+        showTimeMovieImg.alt = "poster"
+        const showTimeMovieH1 = document.createElement("H3")
+        showTimeMovieH1.innerText= movie.title
+        const h1 =document.createElement("H3")
+        h1.innerText = `${a_time.data.attributes.day} at ${a_time.data.attributes.show_time} playing in ShowRoom ${a_time.data.attributes.show_room_id}`
+        showTimeDiv.append(h1 , showTimeMovieImg, showTimeMovieH1)
+       
+        movieShowTime.appendChild(showTimeDiv)
+    
+    }
 }
